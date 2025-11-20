@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get("fd7lp5@t=hp@j8z^qptt%bbu%dd+9j(h_hgu)l@fyjp(u6q!_@"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["brainua-project.onrender.com"]
 
 
 # Application definition
@@ -127,5 +127,5 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
+    "https://brainua-project.onrender.com",
 ]

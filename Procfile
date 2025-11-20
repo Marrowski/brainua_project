@@ -1,1 +1,0 @@
-web: gunicorn brainua_project.wsgi --log-file -

@@ -1,3 +1,8 @@
+'''
+The script contains the logic of parsing data using Selenium and save it to a database.
+'''
+
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -82,7 +87,7 @@ def extract_data_from_page(driver):
     print('*' * 100)
 
     try:
-        specs_container = driver.find_element(By.XPATH, '(//div[@class="br-pr-chr-item"])[1]/parent::div')
+        specs_container = driver.find_element(By.XPATH, '//div[@class="br-pr-chr"]')
     except NoSuchElementException:
         specs_container = None
         print('Information about phone not found.')
@@ -96,17 +101,29 @@ def extract_data_from_page(driver):
             phone_data['name'] = None
 
         try:
-            phone_data['color'] = specs_container.find_element(By.XPATH,'.//span[contains(text(), "Колір")]').find_element(By.XPATH, 'following::a[1]').get_attribute('textContent').strip()
+            phone_data['color'] = specs_container.find_element(By.XPATH,'.//span[contains(text(), "Колір")]').find_element(By.XPATH, 'following-sibling::span//a').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['color'] = None
 
         try:
-            phone_data['memory'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Вбудована пам\'ять")]').find_element(By.XPATH, 'following::a[1]').get_attribute('textContent').strip()
+            phone_data['memory'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Вбудована пам\'ять")]').find_element(By.XPATH, 'following-sibling::span//a').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['memory'] = None
 
         try:
-            phone_data['seller'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Виробник")]').find_element(By.XPATH,'following-sibling::span[1]').get_attribute('textContent').strip()
+
+            price_span = driver.find_element(By.XPATH, './/div[@class="br-pr-price main-price-block"]//span')
+            price_strong = price_span.find_element(By.XPATH, 'following-sibling::strong').get_attribute('textContent')
+            price_span_val = price_span.get_attribute('textContent')
+
+            price = f'{price_span_val} {price_strong}'
+
+            phone_data['price'] = ' '.join(price.split())
+        except NoSuchElementException:
+            phone_data['price'] = None
+
+        try:
+            phone_data['seller'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Виробник")]').find_element(By.XPATH,'following-sibling::span').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['seller'] = None
 
@@ -125,7 +142,7 @@ def extract_data_from_page(driver):
             phone_data['photos'] = None
 
         try:
-            phone_data['code'] = driver.find_element(By.XPATH, './/span[@class="br-pr-code-val"]').text.strip()
+            phone_data['code'] = driver.find_element(By.XPATH, '//div[@id="product_code"]//span[@class="br-pr-code-val"]').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['code'] = None
 
@@ -136,33 +153,28 @@ def extract_data_from_page(driver):
             phone_data['reviews'] = None
 
         try:
-            phone_data['diagonal'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Діагональ екрану")]').find_element(By.XPATH, 'following::a[1]').get_attribute('textContent').strip()
+            phone_data['diagonal'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Діагональ екрану")]').find_element(By.XPATH, 'following-sibling::span//a').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['diagonal'] = None
 
         try:
-            phone_data['resolution'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Роздільна здатність екрану")]').find_element(By.XPATH, 'following::span[1]').get_attribute('textContent').strip()
+            phone_data['resolution'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Роздільна здатність екрану")]').find_element(By.XPATH, 'following-sibling::span//a').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['resolution'] = None
 
         try:
             phone_specs = {}
-            container = specs_container.find_elements(By.XPATH, './/h3')
+            container = specs_container.find_elements(By.XPATH, './/div')
 
             for data in container:
+                name_specs = data.find_element(By.XPATH, './/span[1]').get_attribute('textContent').strip()
+                value_specs = data.find_element(By.XPATH, './/span[2]').get_attribute('textContent').strip().replace('\xa0', ' ')
 
-                row = data.find_elements(By.XPATH, 'following-sibling::div[1]//div[span and span[2]]')
+                name = ' '.join(name_specs.split())
+                value = ' '.join(value_specs.split())
 
-                for j in row:
-                    try:
-                        name_specs = j.find_element(By.XPATH, './/span[1]').text.strip()
-                        value_specs = j.find_element(By.XPATH, './/span[2]').text.strip()
-                    except NoSuchElementException:
-                        continue
-
-                    if name_specs and value_specs:
-                        phone_specs[name_specs] = value_specs
-
+                if name_specs and value_specs:
+                    phone_specs[name] = value
 
             phone_data['specs'] = phone_specs if phone_specs else None
 
@@ -171,6 +183,21 @@ def extract_data_from_page(driver):
 
         for key, value in phone_data.items():
             print(f'{key}:{value}')
+
+
+        object, created = Phone.objects.get_or_create(
+            name = phone_data['name'],
+            color = phone_data['color'],
+            memory_capacity = phone_data['memory'],
+            price = phone_data['price'],
+            screen_diagonal = phone_data['diagonal'],
+            display_resolution = phone_data['resolution'],
+            seller = phone_data['seller'],
+            product_code = phone_data['code'],
+            reviews_amount = phone_data['reviews'],
+            photos = phone_data['photos'],
+            characteristics = phone_data['specs']
+     )
 
 
 if __name__ == '__main__':

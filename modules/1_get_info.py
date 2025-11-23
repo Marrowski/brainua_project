@@ -28,11 +28,6 @@ if response.status_code == 200:
     soup = BeautifulSoup(response.text, 'html.parser')
     phone = {}
 
-    try:
-        phone['name'] = soup.h1.text.strip()
-    except AttributeError:
-        phone['name'] = None
-
     container = soup.find('div', attrs={'class':'br-pr-chr'})
 
     try:
@@ -122,13 +117,12 @@ if response.status_code == 200:
 
 
     object, created = Phone.objects.get_or_create(
-        name=phone.get('name'),
+        name=phone.get('series'),
         color=phone.get('color'),
         memory_capacity=phone.get('memory'),
         price=phone.get('default_price'),
         screen_diagonal=phone.get('diagonal'),
         display_resolution=phone.get('resolution'),
-        series=phone.get('series'),
         seller=phone.get('seller'),
         product_code=phone.get('code'),
         reviews_amount=phone.get('reviews'),

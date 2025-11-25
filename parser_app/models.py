@@ -14,6 +14,7 @@ class Phone(models.Model):
     seller = models.CharField(max_length=255, null=True)
     product_code = models.CharField(max_length=50, null=True)
     reviews_amount = models.IntegerField(null=True)
+    status = models.CharField(default='New')
 
     #2. Additional fields
     characteristics = models.JSONField(default=[], null=True)

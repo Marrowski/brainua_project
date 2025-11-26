@@ -96,7 +96,7 @@ def extract_data_from_page(driver):
         phone_data = {}
 
         try:
-            phone_data['name'] = specs_container.find_element(By.XPATH, './/span[contains(text(), "Модель")]').find_element(By.XPATH, 'following-sibling::span').get_attribute('textContent').strip()
+            phone_data['name'] = driver.find_element(By.XPATH, '//h2[@class="prod-title"]/span[contains(text(),"Характеристики")]/following-sibling::span').get_attribute('textContent').strip()
         except NoSuchElementException:
             phone_data['name'] = None
 

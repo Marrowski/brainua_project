@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 class Phone(models.Model):
 
     #1. Main fields
-    name = models.CharField(max_length=50, null=True)
+    name = models.CharField(max_length=150, null=True)
     color = models.CharField(max_length=25, null=True)
     memory_capacity = models.CharField(max_length=10, null=True)
     price = models.CharField(max_length=100, null=True)

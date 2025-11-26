@@ -31,7 +31,7 @@ if response.status_code == 200:
     container = soup.find('div', attrs={'class':'br-pr-chr'})
 
     try:
-        phone['color'] = (container.find('span', string='Колір').find_next('a').text.strip())
+        phone['color'] = container.find('span', string='Колір').find_next('a').text.strip()
     except AttributeError:
         phone['color'] = None
 
@@ -69,7 +69,7 @@ if response.status_code == 200:
         phone['diagonal'] = None
 
     try:
-        phone['series'] = (container.find('span', string='Модель').find_next('span').text.strip())
+        phone['series'] = soup.find('span', string='Характеристики').find_next('span').text.strip()
     except AttributeError:
         phone['series'] = None
 
@@ -79,7 +79,7 @@ if response.status_code == 200:
         phone['resolution'] = None
 
     try:
-        phone['reviews'] = len(soup.find_all('div', class_='br-pt-bc-item'))
+        phone['reviews'] = len(soup.find_all('div', class_='br-pt-bc-list'))
 
     except AttributeError:
         phone['reviews'] = None

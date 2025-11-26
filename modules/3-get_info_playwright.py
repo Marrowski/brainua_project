@@ -13,7 +13,6 @@ import asyncio
 def get_new_items():
     return list(Phone.objects.filter(status='New').order_by('id'))
 
-
 @sync_to_async
 def mark_item_done(phone: Phone):
     phone.status = 'Done'
@@ -53,30 +52,30 @@ async def main():
                 page = await context.new_page()
 
                 await page.goto(link)
-                await page.wait_for_timeout(300)
+                await page.wait_for_timeout(3000)
 
                 try:
                     await page.locator('xpath=//div[@class="header-bottom"]//input[@type="search"]').click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(3000)
                 except Error as nameError:
                     print(f'An error occurred: {nameError}')
 
                 text = 'Apple iPhone 15 128GB Black'
                 try:
                     await page.locator('xpath=//div[@class="header-bottom"]//input[@type="search"]').fill(text)
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(3000)
                 except Error as nameError:
                     print(f'An error occurred: {nameError}')
 
                 try:
                     await page.locator('xpath=//div[@class="header-bottom"]//input[@class="qsr-submit"]').click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(3000)
                 except Error as nameError:
                     print(f'An error occurred: {nameError}')
 
                 try:
                     await page.locator('xpath=(//div[contains(@class,"description-wrapper")]//a)[1]').click()
-                    await page.wait_for_timeout(300)
+                    await page.wait_for_timeout(3000)
                 except Error as nameError:
                     print(f'An error occurred: {nameError}')
 
@@ -88,7 +87,7 @@ async def main():
                     phone_data = {}
 
                     try:
-                        name_prod = await con.query_selector('xpath=.//span[contains(text(), "Модель")]//following-sibling::span')
+                        name_prod = await page.query_selector('xpath=.//h2[@class="prod-title"]//span[contains(text(), "Характеристики")]//following-sibling::span')
                         phone_data['name'] = (await name_prod.text_content()).strip() if name_prod else None
                     except:
                         phone_data['name'] = None
@@ -164,7 +163,7 @@ async def main():
 
                     try:
                         specs = {}
-                        specs_container = await con.query_selector_all('.//div')
+                        specs_container = await con.query_selector_all('xpath=.//div')
 
                         for item in specs_container:
                             name_specs_raw = await item.query_selector('xpath=.//span[1]')
@@ -188,9 +187,32 @@ async def main():
                     for key, value in phone_data.items():
                         print(f'{key}:{value}')
 
+                await save_to_db(phone_data)
+
+                await mark_item_done(phone)
+
+            await browser.close()
+
 
     except Exception as nameError:
         print(f'Error: {nameError}')
+
+
+@sync_to_async
+def save_to_db(phone_data):
+    object, created = Phone.objects.get_or_create(
+        name=phone_data['name'],
+        color=phone_data['color'],
+        memory_capacity=phone_data['memory'],
+        price=phone_data['price'],
+        screen_diagonal=phone_data['diagonal'],
+        display_resolution=phone_data['resolution'],
+        seller=phone_data['seller'],
+        product_code=phone_data['code'],
+        reviews_amount=phone_data['reviews'],
+        photos=phone_data['photos'],
+        characteristics=phone_data['specs']
+    )
 
 
 if __name__ == '__main__':
